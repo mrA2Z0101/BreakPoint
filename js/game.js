@@ -67,6 +67,7 @@ window.addEventListener('keydown', (e) => {
   // while the AI demo runs on the menu, capture only the DEV secret (and Esc to back out of submenus)
   if (game.attract) {
     if (k === 'escape' && !$('scrMenu').classList.contains('on')) { AudioSys.sfx('click'); goMenu(); return; }
+    if (k === 'escape' && Cabinet.active) { AudioSys.sfx('click'); Cabinet.exit(); return; }
     keySeq.push(k); if (keySeq.length > 3) keySeq.shift();
     if (keySeq.join('') === 'dev') game.devRoom();
     return;
@@ -190,6 +191,7 @@ const game = {
   setAutoplay(on, announce = true) {
     if (this.autoplay === on) return;
     this.autoplay = on;
+    if (on) this.sectorAssisted = true;   // AI-played sectors don't pay Glitchcade coins
     $('aiBadge').classList.toggle('on', on);
     if (on) this.aiTargetX = this.paddle ? this.paddle.x : CFG.W / 2;
     else input.mouseActive = false;   // stop the AI's last target from steering the player
@@ -277,6 +279,7 @@ const game = {
     this.corruption = 0;
     this.time = 0;
     this.stats = { bricks: 0, bosses: 0, powerups: 0, timeStart: performance.now() };
+    this.runCoins = 0;
     this.level = 1;
     this.startLevel();
     AudioSys.startMusic(this.arenaIdx);
@@ -292,6 +295,7 @@ const game = {
     this.timers = {}; this.eventFlags = {}; this.activeEvent = null;
     this.surgeApplied = false;   // a level ending mid-DATA SURGE used to strand this true, disabling the event for the rest of the run
     this.levelTime = 0;
+    this.sectorAssisted = this.autoplay;
     this.corruptT = 5;
     this.nextEventT = rand(12, 20);
     this.enemySpawnT = rand(8, 14);
@@ -865,6 +869,7 @@ const game = {
       bonus += timeBonus;
     }
     this.score += bonus;
+    const coins = this.awardCoins();
     const modeDef = MODES[this.mode];
     const finished = this.level >= modeDef.levels;
     if (finished) return this.endRun(true);
@@ -878,9 +883,21 @@ const game = {
         ['Score', this.score.toLocaleString(), true],
         ['Max Combo', this.maxCombo],
         ['Time', this.levelTime.toFixed(1) + 's'],
+        ...(coins ? [['◎ Coins', '+' + coins]] : []),
       ]) +
       `<div class="stat">${this.autoplay ? 'AI continues automatically' : 'SPACE / ENTER to continue'}</div>`;
     showScreen('scrClear');
+  },
+
+  // Glitchcade coins for the sector just cleared, paid into the wallet Glitch Pong
+  // shares. Boss sectors pay a Glitch Pong win's worth. Nothing for the menu demo
+  // or for any sector the AI played part of.
+  awardCoins() {
+    if (this.attract || this.mode === 'ai' || this.sectorAssisted) return 0;
+    const n = this.boss ? COINS.boss : COINS.sector;
+    Wallet.award(n);
+    this.runCoins += n;
+    return n;
   },
 
   nextLevel() {
@@ -955,6 +972,7 @@ const game = {
         ? statChips([
             ['+ XP', xpGain.toLocaleString()],
             ['+ Credits', crGain.toLocaleString()],
+            ...(this.runCoins ? [['◎ Coins', '+' + this.runCoins]] : []),
             [newBest ? 'New Best!' : 'Best', (Meta.data.best[bestKey] ?? this.score).toLocaleString(), true],
           ])
         : `<div class="clear-bonus">AI AUTOPLAY — NO PROGRESSION EARNED</div>`) +
@@ -1395,6 +1413,7 @@ function refreshMenuStats() {
   $('mLvl').textContent = Meta.level;
   $('mXp').textContent = Meta.data.xp.toLocaleString();
   $('mCr').textContent = Meta.data.credits.toLocaleString();
+  $('mCoins').textContent = Wallet.get().coins.toLocaleString();
 }
 
 function buildModeGrid() {
@@ -1524,6 +1543,10 @@ $('btnQuit').onclick = () => goMenu();
 $('btnNext').onclick = () => game.nextLevel();
 $('btnAgain').onclick = () => game.startRun(game.mode);
 $('btnOverMenu').onclick = () => goMenu();
+$('btnArcade').onclick = () => { AudioSys.sfx('click'); Cabinet.exit(); };
+if (Cabinet.active) $('btnArcade').style.display = '';
+// coins spent at the prize counter (another tab, or the arcade around this cabinet)
+window.addEventListener('storage', (e) => { if (e.key === Wallet.KEY) refreshMenuStats(); });
 $('vol').oninput = (e) => {
   AudioSys.init();
   AudioSys.setVolume(e.target.value / 100);
