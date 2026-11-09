@@ -308,6 +308,7 @@ input[type=range]{accent-color:var(--cyan);width:160px}
 /* the three secondary buttons sit in one row the width of the SETTINGS button */
 .px-row{display:flex;gap:8px;flex-wrap:nowrap;justify-content:center;margin-top:2px;width:340px;max-width:78vw}
 #scrMenu{gap:12px;justify-content:center}
+#scrMenu .px-btn.arcade{flex:none;width:340px;max-width:78vw;color:#ffd27a}
 #scrMenu .px-btn.blue,#scrMenu .px-btn.red{padding:18px 18px;font-size:19px}
 /* menu is see-through so the AI demo shows through, with a readable veil */
 #scrMenu{
@@ -358,7 +359,9 @@ input[type=range]{accent-color:var(--cyan);width:160px}
         <span class="stat">Lvl <b id="mLvl">1</b></span>
         <span class="stat">XP <b id="mXp">0</b></span>
         <span class="stat">Credits <b id="mCr">0</b></span>
+        <span class="stat" title="Glitchcade coins — shared with Glitch Pong, spent at the prize counter">◎ Coins <b id="mCoins">0</b></span>
       </div>
+      <button id="btnArcade" class="px-btn sm arcade" style="display:none">&lt; Exit to arcade</button>
     </div>
 
     <!-- SETTINGS -->
@@ -468,6 +471,7 @@ input[type=range]{accent-color:var(--cyan);width:160px}
 <script src="js/config.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/effects.js"></script>
+<script src="js/wallet.js"></script>
 <script src="js/entities.js"></script>
 <script src="js/game.js"></script>
 </body>

@@ -35,8 +35,15 @@ No build step. Either:
 - **9 modes** — Classic, Endless, Corruption, Hardcore, Time Attack, Puzzle, Boss Rush, Daily Glitch (date-seeded mutators, local best), AI Autoplay
 - **Screen FX: Reduced** setting (defaults on with OS reduce-motion) — softer shake, capped flashes, no tearing
 - **Meta progression** — XP, credits, 12 permanent upgrades, 16 achievements, saved to `localStorage`
+- **Glitchcade coins** — every sector you clear pays 2 coins (a boss sector pays 10) into the same wallet Glitch Pong uses; spend them at PRIZETRON-80's prize counter. Sectors the AI played don't pay.
 
 There is also a secret. Old-school arcade rules: it's three letters and typed on the main menu.
+
+## In the Glitchcade
+
+Break Point is **cabinet 02** in Glitch Pong's 3D arcade. The arcade opens `index.html?cabinet` in a full-screen frame; in that mode the main menu shows **Exit to arcade** (or press Esc on the main menu) to walk away from the machine.
+
+Coins are shared through `localStorage` (key `glitchcade_wallet_v1`), which browsers only share within one site. Break Point and Glitch Pong must be served from the same origin, for example both on your `github.io` domain, for the balance to carry over.
 
 ## Code layout
 
@@ -44,6 +51,7 @@ There is also a secret. Old-school arcade rules: it's three letters and typed on
 index.html      shell, HUD, menus, CRT overlay CSS
 js/config.js    data: bricks, arenas, powerups, events, modes, upgrades, achievements
 js/audio.js     WebAudio: per-arena synthwave scheduler + all SFX
+js/wallet.js    Glitchcade coin wallet (shared with Glitch Pong) + cabinet exit bridge
 js/effects.js   particles, floating text, screen shake, RGB split, slice tearing
 js/entities.js  paddle, ball, bricks, enemies, bosses, hazards
 js/game.js      state machine, level generation, collisions, events, progression, UI
